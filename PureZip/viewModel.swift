@@ -52,7 +52,7 @@ extension ContentView {
             searchProgress = "Zipping"
             isUIDisable = true
             
-            let cmd = "cd \(inputPath) && zip -r \(filename).zip . \(setting) && mv \(filename).zip \(outputPath)"
+            let cmd = "cd \(inputPath) && zip -r \(filename).zip / \(setting) && mv \(filename).zip \(outputPath)"
             
             DispatchQueue.global(qos: .background).async {
                 let zipResult =  self.doZipFile(cmd)

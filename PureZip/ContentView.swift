@@ -137,10 +137,6 @@ struct ContentView: View {
         alert.runModal()
     }
     
-    func checkFileExist() {
-        
-    }
-    
     func zipButtonAction() {
         
         var errorMessage = ""
