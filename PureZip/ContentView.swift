@@ -226,15 +226,20 @@ struct ContentView: View {
             showAlert(with: .warning, title: "Error", subtitle: errorMessage)
             return
         }
-        var nameOfFile = inputPath.components(separatedBy: "/").last ?? "zipFile"
-        var filePath = outputPath + "/" + nameOfFile
+        
+        let checkedOutputPath = pathChecker(outputPath)
+        let checkedInputPath = pathChecker(inputPath)
+        let checkedTargetFile = "file://" + checkedInputPath
+        var pureFileName = URL(fileURLWithPath: checkedTargetFile, isDirectory: false).deletingPathExtension().lastPathComponent ?? "zipFile"
+
+        var filePath = checkedOutputPath + "/" + pureFileName
         var count = 0
         while FileManager.default.fileExists(atPath: filePath + ".zip") {
             count += 1
-            filePath = outputPath + "/" + nameOfFile + "_\(count)"
+            filePath = checkedOutputPath + "/" + pureFileName + "_\(count)"
         }
         if count != 0 {
-            nameOfFile = nameOfFile + "_\(count)"
+            pureFileName = pureFileName + "_\(count)"
         }
         
         var arguSetting = ""
@@ -253,11 +258,7 @@ struct ContentView: View {
             arguSetting = arguSetting.appending(" -x \".svn\"")
             arguSetting = arguSetting.appending(" -x \"*.svn*\"")
         }
-        
-        let checkedOutputPath = pathChecker(outputPath)
-        let checkedInputPath = pathChecker(inputPath)
-
-        viewModel.zipFiles(checkedInputPath, checkedOutputPath, filename: nameOfFile, setting: arguSetting)
+        viewModel.zipFiles(checkedInputPath, checkedOutputPath, filename: pureFileName, setting: arguSetting)
     }
     
     func pathChecker(_ path: String) -> String {

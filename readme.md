@@ -9,3 +9,6 @@
 ## version 2.0
 - Add drap and drop for the input path.
 - Check the space and chinese in the path.
+
+## version 2.1
+- Fix the problem when the path including space and chinese.

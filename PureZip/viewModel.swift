@@ -42,18 +42,25 @@ extension ContentView {
         func zipFiles(_ inputPath: String,_ outputPath: String, filename: String, setting: String) {
             searchProgress = "Zipping"
             isUIDisable = true
-            var cmd = "cd \(inputPath) && zip -r \(filename).zip . \(setting) && mv \(filename).zip \(outputPath)"
-            let targetFile = "file://" + inputPath
-            let checkedTargetFile = targetFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? targetFile
+            print("inputPath: " + inputPath)
+            print("outputPath: " + outputPath)
+            print("filename: " + filename)
+            var cmd = ""
+            let addPercentInputPath = inputPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? inputPath
+            let addPercentOutputPath = outputPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? outputPath
+            let checkedTargetFile = "file://" + addPercentInputPath
+            let checkedFileName = filename
             if let targetFileURL = URL(string: checkedTargetFile) {
-                let isDirectory = (try? targetFileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
-                if !isDirectory {
-                    var folderName = createDirectory(filename)
-                    folderName = folderName.replacingOccurrences(of: " ", with: "\\ ")
-                    let cpFileName = folderName + "/" + filename.replacingOccurrences(of: " ", with: "\\ ")
-                    let pureFileName = URL(fileURLWithPath: targetFile, isDirectory: false).deletingPathExtension().lastPathComponent
-
-                    cmd = "cd \(folderName) && cp \(inputPath) \(cpFileName) && zip -r \(pureFileName).zip . \(setting) && mv \(pureFileName).zip \(outputPath) && rm -r \(folderName)"
+                let isDirectory = targetFileURL.pathExtension == "" ? true : false//(try? targetFileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+                if isDirectory {
+                    cmd = "cd \(inputPath) && zip -r \(checkedFileName).zip . \(setting) && mv \(checkedFileName).zip \(outputPath)"
+                } else {
+                    let pureFileName = URL(fileURLWithPath: checkedTargetFile, isDirectory: false).deletingPathExtension().lastPathComponent
+                    let fName = filename.replacingOccurrences(of: "\\ ", with: " ")
+                    let folderName = createDirectory(fName).replacingOccurrences(of: " ", with: "\\ ")
+                    print("folderName: " + folderName)
+                    let cpFileName = folderName + "/" + checkedFileName + "." + targetFileURL.pathExtension
+                    cmd = "cd \(folderName) && cp \(inputPath) \(cpFileName) && zip -r \(checkedFileName).zip . \(setting) && mv \(checkedFileName).zip \(outputPath) && rm -r \(folderName)"
                 }
             }
             
