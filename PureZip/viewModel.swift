@@ -19,15 +19,6 @@ extension ContentView {
             dataLock = NSLock()
         }
         
-//        func removeDSStoreFiles(_ path: String){
-//
-//            let task = Process()
-//            task.launchPath = "/usr/bin/find"
-//            let para = [path, "-name", ".DS_Store", "-delete"]
-//            task.arguments = para
-//            task.launch()
-//        }
-        
         func doZipFile(_ command: String) -> Bool {
             dataLock = NSLock()
             let task = Process()
@@ -51,8 +42,20 @@ extension ContentView {
         func zipFiles(_ inputPath: String,_ outputPath: String, filename: String, setting: String) {
             searchProgress = "Zipping"
             isUIDisable = true
-            
-            let cmd = "cd \(inputPath) && zip -r \(filename).zip / \(setting) && mv \(filename).zip \(outputPath)"
+            var cmd = "cd \(inputPath) && zip -r \(filename).zip . \(setting) && mv \(filename).zip \(outputPath)"
+            let targetFile = "file://" + inputPath
+            let checkedTargetFile = targetFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? targetFile
+            if let targetFileURL = URL(string: checkedTargetFile) {
+                let isDirectory = (try? targetFileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+                if !isDirectory {
+                    var folderName = createDirectory(filename)
+                    folderName = folderName.replacingOccurrences(of: " ", with: "\\ ")
+                    let cpFileName = folderName + "/" + filename.replacingOccurrences(of: " ", with: "\\ ")
+                    let pureFileName = URL(fileURLWithPath: targetFile, isDirectory: false).deletingPathExtension().lastPathComponent
+
+                    cmd = "cd \(folderName) && cp \(inputPath) \(cpFileName) && zip -r \(pureFileName).zip . \(setting) && mv \(pureFileName).zip \(outputPath) && rm -r \(folderName)"
+                }
+            }
             
             DispatchQueue.global(qos: .background).async {
                 let zipResult =  self.doZipFile(cmd)
@@ -66,6 +69,20 @@ extension ContentView {
                         }
                     }
                 }
+            }
+        }
+        
+        func createDirectory(_ name: String) -> String {
+            let paths = NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true)
+            let documentsDirectory = paths[0]
+            let docURL = URL(string: documentsDirectory)!
+            let dataPath = docURL.appendingPathComponent(name).deletingPathExtension()
+            do {
+                try FileManager.default.createDirectory(atPath: dataPath.path, withIntermediateDirectories: true, attributes: nil)
+                return dataPath.path
+            } catch {
+                print(error.localizedDescription)
+                return ""
             }
         }
 
